@@ -1,0 +1,38 @@
+---
+title: "5241 project"
+author: "Jiage Song"
+date: "3/20/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+community <- read.csv(url("https://archive.ics.uci.edu/ml/machine-learning-databases/communities/communities.data"),header=FALSE)
+
+```
+
+
+```{r}
+
+
+names(community)[1] <- "State"
+names(community)[2] <- "County"
+names(community)[3] <- "Community"
+#names(community)[4]
+#names(community)[5]
+#names(community)[6]
+#names(community)[7]
+#names(community)[8]
+#names(community)[9]
+#names(community)[10]
+#names(community)[11]
+#names(community)[12]
+
+head(community,10)
+```
+
