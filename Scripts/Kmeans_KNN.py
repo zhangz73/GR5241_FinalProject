@@ -3,33 +3,46 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-from sklearn.preprocessing import MinMaxScaler
+import statsmodels.api as sm
 
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.cluster import KMeans
 
 ## Load Data:
-#with open("../Data/communities.data", "r") as f:
-#    lines = f.readlines()
-#    data = [line.strip().split(",") for line in lines]
-#
-#with open("../Data/Attributes.txt", "r") as f:
-#    attributes = f.readlines()
-#    attributes = [x.strip("\n") for x in attributes]
-#
-#with open("../Data/communities.csv", "w") as f:
-#    f.write(",".join(attributes) + "\n")
-#    for line in lines:
-#        f.write(line)
-data = pd.read_csv("../Data/communities.csv")
+data = pd.read_csv("../Data/communities_rmMissing.csv")
+X = data[[x for x in data.columns if x not in ["state", "communityname", "ViolentCrimesPerPop", "fold"]]]
+Y = data["ViolentCrimesPerPop"]
 
-## Classifiers
-#dt = DecisionTreeClassifier()
-#knn = KNeighborsClassifier(n_neighbors = 3)
-#svm = SVC(C = 1, gamma = 2)
-#nb = GaussianNB()
-#adaboost = AdaBoostClassifier(DecisionTreeClassifier(max_depth = 3),
-#                                                    n_estimators = 30)
+## Models
+knn = KNeighborsRegressor(n_neighbors = 5)
+kmeans = KMeans(n_clusters=2, random_state=0)
+
+## Fit
+model_kmeans = kmeans.fit(X)
+model_knn = knn.fit(X, Y)
+residuals = Y - model_knn.predict(X)
+
+## Plot
+hist_x = []
+for label in set(model_kmeans.labels_):
+    hist_x.append([Y[i] for i in range(len(Y)) if model_kmeans.labels_[i] == label])
+
+plt.hist(hist_x, label=["Cluster_" + str(x) for x in set(model_kmeans.labels_)])
+plt.legend()
+plt.savefig("../Plots/Kmeans_hist.png")
+plt.close()
+
+plt.plot(residuals, '.')
+plt.axhline(y=0, color="red")
+plt.title("MSE = " + str(np.mean(residuals ** 2)))
+plt.savefig("../Plots/KNN_residuals_scatter.png")
+plt.close()
+
+fig = sm.qqplot(residuals)
+plt.savefig("../Plots/KNN_residuals_qqplot.png")
+plt.close()
