@@ -17,6 +17,8 @@ from sklearn.cluster import KMeans
 data = pd.read_csv("../Data/communities_rmMissing.csv")
 X = data[[x for x in data.columns if x not in ["state", "communityname", "ViolentCrimesPerPop", "fold"]]]
 Y = data["ViolentCrimesPerPop"]
+train_prct = 0.8
+n_train = int(round(X.shape[0]*train_prct))
 
 ## Models
 knn = KNeighborsRegressor(n_neighbors = 5)
@@ -24,8 +26,8 @@ kmeans = KMeans(n_clusters=2, random_state=0)
 
 ## Fit
 model_kmeans = kmeans.fit(X)
-model_knn = knn.fit(X, Y)
-residuals = Y - model_knn.predict(X)
+model_knn = knn.fit(X.iloc[:n_train], Y[:n_train])
+residuals = Y[n_train:] - model_knn.predict(X.iloc[n_train:])
 
 ## Plot
 hist_x = []
