@@ -4,28 +4,21 @@ output:
   html_document: default
 ---
 ```{r}
-setwd("C:/Users/ricoc/desktop/columbia university study/Stat 5241 Statistical Machine Learning/project")
-communities <- read.csv("communities.txt", header=FALSE)
-names(communities)[] <- c("state","county","community","communityname","fold"
-                        ,"population","householdsize","racepctblack","racePctWhite","racePctAsian","racePctHisp","agePct12t21","agePct12t29","agePct16t24","agePct65up","numbUrban","pctUrban","medIncome","pctWWage","pctWFarmSelf","pctWInvInc","pctWSocSec","pctWPubAsst","pctWRetire","medFamInc","perCapInc","whitePerCap","blackPerCap","indianPerCap","AsianPerCap","OtherPerCap","HispPerCap","NumUnderPov","PctPopUnderPov","PctLess9thGrade","PctNotHSGrad","PctBSorMore","PctUnemployed"," PctEmploy","PctEmplManu","PctEmplProfServ","PctOccupManu","PctOccupMgmtProf","MalePctDivorce","MalePctNevMarr","FemalePctDiv","TotalPctDiv","PersPerFam","PctFam2Par","PctKids2Par","PctYoungKids2Pa","PctTeen2Par","PctWorkMomYoungKids","PctWorkMom","NumIlleg","PctIlleg","NumImmig","PctImmigRecent","PctImmigRec5"," PctImmigRec8","PctImmigRec10","PctRecentImmig","PctRecImmig5","PctRecImmig8","PctRecImmig10","PctSpeakEnglOnly","PctNotSpeakEnglWell","PctLargHouseFam","PctLargHouseOccup","PersPerOccupHous","PersPerOwnOccHous","PersPerRentOccHous","PctPersOwnOccup","PctPersDenseHous","PctHousLess3BR","MedNumBR","HousVacant","PctHousOccup","PctHousOwnOcc","PctVacantBoarded","PctVacMore6Mos","MedYrHousBuilt","PctHousNoPhone","PctWOFullPlumb","OwnOccLowQuart","OwnOccMedVal","OwnOccHiQuart","RentLowQ","RentMedian","RentHighQ","MedRent","MedRentPctHousInc","MedOwnCostPctInc","MedOwnCostPctIncNoMtg","NumInShelters","NumStreet","PctForeignBorn","PctBornSameState","PctSameHouse85","PctSameCity85","PctSameState85","LemasSwornFT","LemasSwFTPerPop","LemasSwFTFieldOps","LemasSwFTFieldPerPop","LemasTotalReq","LemasTotReqPerPop","PolicReqPerOffic","PolicPerPop","RacialMatchCommPol","PctPolicWhite","PctPolicBlack","PctPolicHisp","PctPolicAsian","PctPolicMinor","OfficAssgnDrugUnits","NumKindsDrugsSeiz","PolicAveOTWorked","LandArea","PopDens","PctUsePubTrans","PolicCars","PolicOperBudg","LemasPctPolicOnPatr","LemasGangUnitDeploy","LemasPctOfficDrugUn","PolicBudgPerPop","ViolentCrimesPerPop")
+getwd()
+setwd("C:/Users/ricoc/desktop/GR5241_FinalProject-main/Data")
+communities <- read.csv("communities_rmMissing.csv", header=T)
 communities
-dim(communities)
 ```
 ```{r}
-stat.data <- read.csv("summary.txt",header= FALSE)
-names(stat.data)[] <-c("Catogegory","Min", "Max", "Mean", "SD", "Correl", "Median", "Mode", "Missing")
-stat.data
+#stat.data <- read.csv("summary.txt",header= FALSE)
+#names(stat.data)[] <-c("Catogegory","Min", "Max", "Mean", "SD", "Correl", "Median", "Mode", "Missing")
 ```
 
 ```{r}
-
 library(dplyr)
 comwithrace =
   communities%>%
   select(-(state:fold)) %>%
-  select(-contains('lemas')) %>%
-  select(-contains('Polic')) %>%
-  select(-(RacialMatchCommPol:NumKindsDrugsSeiz)) %>%
   print()
 comwithrace
 
@@ -41,30 +34,200 @@ anova(lm1)
 
 ```{r}
 
-library(dplyr)
-comworace =
-  communities%>%
-  select(-(state:fold)) %>%
-  select(-contains('lemas')) %>%
-  select(-contains('Polic')) %>%
-  select(-(RacialMatchCommPol:NumKindsDrugsSeiz)) %>%
-  select(-contains('race')) %>%
-  print()
-comworace
+#library(dplyr)
+#comworace =
+ # communities%>%
+ # select(-(state:fold)) %>%
+ # select(-contains('lemas')) %>%
+ # select(-contains('Polic')) %>%
+ # select(-(RacialMatchCommPol:NumKindsDrugsSeiz)) %>%
+ # select(-contains('race')) %>%
+ # print()
+#comworace
 
 ```
 
 ```{r}
-lm2 = lm(ViolentCrimesPerPop~.,data=comworace)
-anova(lm2)
+#lm2 = lm(ViolentCrimesPerPop~.,data=comworace)
+#anova(lm2)
 ```
 
 ```{r}
 library(DAAG)
-vif(lm1)
+vifless5<-vif(lm1)
+names(vifless5) <- names(vif(lm1))
+vifless5 <- vifless5[vifless5 < 5]
+lm3 <- lm(ViolentCrimesPerPop~pctWFarmSelf+pctWRetire+blackPerCap+indianPerCap+AsianPerCap+HispPerCap+PctEmplManu+MedNumBR+PctHousOccup+PctVacantBoarded+PctVacMore6Mos+PctWOFullPlumb+MedRentPctHousInc+MedOwnCostPctInc+MedOwnCostPctIncNoMtg+NumInShelters+NumStreet+LandArea+PopDens+PctUsePubTrans+LemasPctOfficDrugUn,data=comwithrace)
+summary(lm3)
+anova(lm3)["Residuals", "Sum Sq"]
 
 ```
 
 ```{r}
-vif(lm2)
+plot(fitted(lm3), resid(lm3), col = "lightblue",
+     pch = 20, cex = 1.5, xlab = "Fitted", ylab = "Residuals")
+abline(h = 0, lty = 2, col = "orange", lwd = 2)
+```
+
+```{r}
+#library(ggplot2)
+#ggplot(communities, aes(x = ViolentCrimesPerPop)) + geom_histogram() + 
+#   ggtitle("The Histogram")
+
+#ggplot(communities, aes(x = ViolentCrimesPerPop)) + geom_boxplot() + 
+#    ggtitle("The Boxplot")
+
+
+#communities$lnViolentCrimesPerPop = log(communities$ViolentCrimesPerPop)
+#ggplot(communities, aes(x = lnViolentCrimesPerPop)) + geom_histogram() + 
+#    ggtitle("The Histogram of log of ViolentCrimesPerPop")
+
+#ggplot(communities, aes(x = lnViolentCrimesPerPop)) + geom_boxplot() + 
+#    ggtitle("The Boxplot of log of ViolentCrimesPerPop")
+```
+
+
+
+```{r}
+comwithrace$LemasPctOfficDrugUn1 <- comwithrace$LemasPctOfficDrugUn +1
+comwithrace$pctWFarmSelf1 <- comwithrace$pctWFarmSelf + 1
+comwithrace$pctWRetire1 <- comwithrace$pctWRetire +1
+comwithrace$blackPerCap1 <- comwithrace$blackPerCap +1
+comwithrace$indianPerCap1 <- comwithrace$indianPerCap +1
+comwithrace$AsianPerCap1 <- comwithrace$AsianPerCap +1
+comwithrace$HispPerCap1 <- comwithrace$HispPerCap +1
+comwithrace$PctEmplManu1 <- comwithrace$PctEmplManu +1
+comwithrace$MedNumBR1 <- comwithrace$MedNumBR +1
+comwithrace$PctHousOccup1 <- comwithrace$PctHousOccup +1
+comwithrace$PctVacantBoarded1 <- comwithrace$PctVacantBoarded +1
+comwithrace$PctVacMore6Mos1 <- comwithrace$PctVacMore6Mos +1
+comwithrace$PctWOFullPlumb1 <- comwithrace$PctWOFullPlumb +1
+comwithrace$MedRentPctHousInc1 <- comwithrace$MedRentPctHousInc +1
+comwithrace$MedOwnCostPctInc1 <- comwithrace$MedOwnCostPctInc +1
+comwithrace$MedOwnCostPctIncNoMtg1 <- comwithrace$MedOwnCostPctIncNoMtg +1
+comwithrace$NumInShelters1 <- comwithrace$NumInShelters +1
+comwithrace$NumStreet1 <- comwithrace$NumStreet +1
+comwithrace$LandArea1 <- comwithrace$LandArea +1
+comwithrace$PopDens1 <- comwithrace$PopDens +1
+comwithrace$PctUsePubTrans1 <- comwithrace$PctUsePubTrans +1
+
+```
+
+```{r}
+library(MASS)
+library(alr4)
+a <- powerTransform(cbind(pctWFarmSelf1,pctWRetire1,blackPerCap1,indianPerCap1,AsianPerCap1,HispPerCap1,PctEmplManu1,MedNumBR1,PctHousOccup1,PctVacantBoarded1,PctVacMore6Mos1,PctWOFullPlumb1,MedRentPctHousInc1,MedOwnCostPctInc1,MedOwnCostPctIncNoMtg1,NumInShelters1,NumStreet1,LandArea1,PopDens1,PctUsePubTrans1,LemasPctOfficDrugUn1) ~ 1, data=comwithrace)
+
+summary(a)
+
+```
+
+```{r}
+lm3lg <- lm(ViolentCrimesPerPop+1~log(pctWFarmSelf1)+log(pctWRetire1)+log(blackPerCap1)+log(indianPerCap1)+log(AsianPerCap1)+log(HispPerCap1)+log(PctEmplManu1)+log(MedNumBR1)+log(PctHousOccup1)+log(PctVacantBoarded1)+log(PctVacMore6Mos1)+log(PctWOFullPlumb1)+log(MedRentPctHousInc1)+log(MedOwnCostPctInc1)+log(MedOwnCostPctIncNoMtg1)+log(NumInShelters1)+log(NumStreet1)+log(LandArea1)+log(PopDens1)+log(PctUsePubTrans1)+log(LemasPctOfficDrugUn1),data=comwithrace)
+summary(lm3lg)
+anova(lm3lg)["Residuals", "Sum Sq"]
+```
+
+```{r}
+invResPlot(lm3lg)
+m1 <- update(lm3lg, log(ViolentCrimesPerPop + 1) ~ . )
+summary(m1)
+```
+
+
+```{r}
+library(MASS)
+boxCox(lm3lg)
+```
+
+```{r}
+lg <- glm(ViolentCrimesPerPop~pctWFarmSelf+pctWRetire+blackPerCap+indianPerCap+AsianPerCap+HispPerCap+PctEmplManu+MedNumBR+PctHousOccup+PctVacantBoarded+PctVacMore6Mos+PctWOFullPlumb+MedRentPctHousInc+MedOwnCostPctInc+MedOwnCostPctIncNoMtg+NumInShelters+NumStreet+LandArea+PopDens+PctUsePubTrans+LemasPctOfficDrugUn,data=comwithrace,family = "binomial")
+summary(lg)
+```
+
+```{r}
+lmexp <- lm(ViolentCrimesPerPop~exp(pctWFarmSelf)+exp(pctWRetire)+exp(blackPerCap)+exp(indianPerCap)+exp(AsianPerCap)+exp(HispPerCap)+exp(PctEmplManu+MedNumBR)+exp(PctHousOccup)+exp(PctVacantBoarded)+exp(PctVacMore6Mos)+exp(PctWOFullPlumb)+exp(MedRentPctHousInc)+exp(MedOwnCostPctInc)+exp(MedOwnCostPctIncNoMtg)+exp(NumInShelters)+exp(NumStreet)+exp(LandArea)+exp(PopDens)+exp(PctUsePubTrans)+exp(LemasPctOfficDrugUn),data=comwithrace)
+plot(lmexp)
+anova(lmexp)["Residuals", "Sum Sq"]
+```
+```{r}
+lmsqrt <- lm(ViolentCrimesPerPop~sqrt(pctWFarmSelf)+sqrt(pctWRetire)+sqrt(blackPerCap)+sqrt(indianPerCap)+sqrt(AsianPerCap)+sqrt(HispPerCap)+sqrt(PctEmplManu+MedNumBR)+sqrt(PctHousOccup)+sqrt(PctVacantBoarded)+sqrt(PctVacMore6Mos)+sqrt(PctWOFullPlumb)+sqrt(MedRentPctHousInc)+sqrt(MedOwnCostPctInc)+sqrt(MedOwnCostPctIncNoMtg)+sqrt(NumInShelters)+sqrt(NumStreet)+sqrt(LandArea)+sqrt(PopDens)+sqrt(PctUsePubTrans)+sqrt(LemasPctOfficDrugUn),data=comwithrace)
+plot(lmsqrt)
+anova(lmsqrt)["Residuals", "Sum Sq"]
+```
+```{r}
+library(dplyr)
+chy =
+  communities%>%
+  dplyr::select(ViolentCrimesPerPop,pctWFarmSelf,pctWRetire,blackPerCap,indianPerCap,AsianPerCap,HispPerCap,PctEmplManu,MedNumBR,PctHousOccup,PctVacantBoarded,PctVacMore6Mos,PctWOFullPlumb,MedRentPctHousInc,MedOwnCostPctInc,MedOwnCostPctIncNoMtg,NumInShelters,NumStreet,LandArea,PopDens,PctUsePubTrans,LemasPctOfficDrugUn) %>%
+  print()
+chy
+```
+```{r}
+#square-root for moderate skew:
+#sqrt(x) for positively skewed data,
+#sqrt(max(x+1) - x) for negatively skewed data
+#log for greater skew:
+#log10(x) for positively skewed data,
+#log10(max(x+1) - x) for negatively skewed data
+#inverse for severe skew:
+#1/x for positively skewed data
+#1/(max(x+1) - x) for negatively skewed dat
+
+library(Hmisc)
+hist.data.frame(chy)
+hist(log10(chy$LemasPctOfficDrugUn))
+hist(sqrt(chy$pctWFarmSelf))
+hist(sqrt(chy$blackPerCap))
+hist(sqrt(chy$indianPerCap))
+hist(sqrt(chy$PctEmplManu))
+hist(1/(max(chy$MedNumBR+1)-chy$MedNumBR))
+hist(sqrt(max(chy$PctHousOccup+1) - chy$PctHousOccup))
+```
+```{r}
+chy$ViolentCrimesPerPop <- as.numeric(gsub("\\.", "", chy$ViolentCrimesPerPop))
+chy$pctWFarmSelf <- as.numeric(gsub("\\.", "", chy$pctWFarmSelf))
+chy$pctWRetire <- as.numeric(gsub("\\.", "", chy$pctWRetire))
+chy$blackPerCap <- as.numeric(gsub("\\.", "", chy$blackPerCap))
+chy$indianPerCap <- as.numeric(gsub("\\.", "", chy$indianPerCap))
+chy$AsianPerCap <- as.numeric(gsub("\\.", "", chy$AsianPerCap))
+chy$HispPerCap <- as.numeric(gsub("\\.", "", chy$HispPerCap))
+chy$PctEmplManu <- as.numeric(gsub("\\.", "", chy$PctEmplManu))
+chy$MedNumBR <- as.numeric(gsub("\\.", "", chy$MedNumBR))
+chy$PctHousOccup <- as.numeric(gsub("\\.", "", chy$PctHousOccup))
+chy$PctVacantBoarded <- as.numeric(gsub("\\.", "", chy$PctVacantBoarded))
+chy$PctVacMore6Mos <- as.numeric(gsub("\\.", "", chy$PctVacMore6Mos))
+chy$PctWOFullPlumb <- as.numeric(gsub("\\.", "", chy$PctWOFullPlumb))
+chy$PctVacMore6Mos <- as.numeric(gsub("\\.", "", chy$PctVacMore6Mos))
+chy$MedRentPctHousInc <- as.numeric(gsub("\\.", "", chy$MedRentPctHousInc))
+chy$MedOwnCostPctInc <- as.numeric(gsub("\\.", "", chy$MedOwnCostPctInc))
+chy$MedOwnCostPctIncNoMtg <- as.numeric(gsub("\\.", "", chy$MedOwnCostPctIncNoMtg))
+chy$NumInShelters <- as.numeric(gsub("\\.", "", chy$NumInShelters))
+chy$NumStreet <- as.numeric(gsub("\\.", "", chy$NumStreet))
+chy$LandArea <- as.numeric(gsub("\\.", "", chy$LandArea))
+chy$PopDens <- as.numeric(gsub("\\.", "", chy$PopDens))
+chy$PctUsePubTrans <- as.numeric(gsub("\\.", "", chy$PctUsePubTrans))
+chy$LemasPctOfficDrugUn <- as.numeric(gsub("\\.", "", chy$LemasPctOfficDrugUn))
+
+
+
+
+```
+
+```{r}
+l123 <- lm(sqrt(chy$ViolentCrimesPerPop)~sqrt(chy$pctWFarmSelf)+chy$pctWRetire+sqrt(chy$blackPerCap)+sqrt(chy$indianPerCap)+sqrt(chy$AsianPerCap)+sqrt(chy$HispPerCap)+sqrt(chy$PctEmplManu)+sqrt(chy$MedNumBR)+sqrt(chy$PctHousOccup)+sqrt(chy$PctVacantBoarded)+chy$PctVacMore6Mos+sqrt(chy$PctWOFullPlumb)+chy$MedRentPctHousInc+chy$MedOwnCostPctInc+chy$MedOwnCostPctIncNoMtg+sqrt(chy$NumInShelters)+sqrt(chy$NumStreet)+sqrt(chy$LandArea)+sqrt(chy$PopDens)+sqrt(chy$PctUsePubTrans)+sqrt(chy$LemasPctOfficDrugUn))
+plot(l123)
+ggplot(data = l123, aes(x = l123$residuals)) +
+    geom_histogram(bins = 20, fill = 'steelblue', color = 'black') +
+    labs(title = 'Histogram of Residuals', x = 'Residuals', y = 'Frequency')
+```
+
+
+```{r}
+
+l1231 <- lm(sqrt(chy$ViolentCrimesPerPop)~sqrt(chy$pctWFarmSelf)+chy$pctWRetire+sqrt(chy$blackPerCap)+sqrt(chy$indianPerCap)+sqrt(chy$AsianPerCap)+sqrt(chy$HispPerCap)+sqrt(chy$PctEmplManu)+log10(chy$MedNumBR+0.0001)+sqrt(chy$PctHousOccup)+sqrt(chy$PctVacantBoarded)+chy$PctVacMore6Mos+sqrt(chy$PctWOFullPlumb)+chy$MedRentPctHousInc+chy$MedOwnCostPctInc+chy$MedOwnCostPctIncNoMtg+log10(chy$NumInShelters+0.0001)+log10(chy$NumStreet+0.0001)+log10(chy$LandArea+0.0001)+sqrt(chy$PopDens)+log10(chy$PctUsePubTrans+0.0001)+log10(chy$LemasPctOfficDrugUn+0.0001))
+plot(l1231)
+ggplot(data = l1231, aes(x = l1231$residuals)) +
+    geom_histogram(bins = 20, fill = 'steelblue', color = 'black') +
+    labs(title = 'Histogram of Residuals', x = 'Residuals', y = 'Frequency')
 ```
