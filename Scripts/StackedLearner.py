@@ -57,10 +57,12 @@ residuals_adaboost = Y[n_train:] - y_pred_test
 y_pred = stacked_learner.predict(X)
 df = pd.DataFrame.from_dict({"state": data.state, "population": data.population, "value": y_pred})
 df.to_csv("../Data/pred_stackedLearner.csv", index=False)
+print(np.mean((y_pred - Y)**2))
 
 y_pred = adaboost.predict(X)
 df = pd.DataFrame.from_dict({"state": data.state, "population": data.population, "value": y_pred})
 df.to_csv("../Data/pred_adaboost.csv", index=False)
+print(np.mean((y_pred - Y)**2))
 
 ## Plot
 plt.plot(residuals_stacked, '.')
