@@ -26,6 +26,9 @@ kmeans = KMeans(n_clusters=2, random_state=0)
 
 ## Fit
 model_kmeans = kmeans.fit(X)
+data["KmeansLabel"] = model_kmeans.labels_
+data.to_csv("../Data/communities_kmeans.csv", index=False)
+
 model_knn = knn.fit(X.iloc[:n_train], Y[:n_train])
 residuals = Y[n_train:] - model_knn.predict(X.iloc[n_train:])
 
