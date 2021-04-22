@@ -1,0 +1,185 @@
+---
+title: "5241 zhengli"
+output: html_document
+---
+
+```{r}
+getwd()
+setwd("C:/Users/ricoc/desktop/GR5241_FinalProject-main/Data")
+communities <- read.csv("communities_rmMissing.csv", header=T)
+communities
+```
+
+
+```{r}
+library(dplyr)
+comwithrace =
+  communities%>%
+  select(-(state:fold)) %>%
+  print()
+head(comwithrace)
+```
+
+```{r}
+set.seed(2021)
+library(rsample)
+data_split <- initial_split(comwithrace, prop = .8)
+train <- training(data_split)
+test  <- testing(data_split)
+```
+
+```{r}
+library(glmnet)
+Xfull <- model.matrix(ViolentCrimesPerPop ~ ., data = train)
+Xfull <- Xfull[, -1] # the Lasso will add its own intercept to the model</pre>
+Y <- train$ViolentCrimesPerPop
+lambdas <- 10^{seq(from = -7, to = 2, length = 100)}
+lafit <- glmnet(Xfull, Y, alpha = 1, lambda = lambdas)
+plot(lafit, xvar = "lambda",label = F)
+cv.rrfit <- cv.glmnet(Xfull, Y, alpha = 1, lambda = lambdas) 
+plot(cv.rrfit)
+lammin <- cv.rrfit$lambda.min
+lam1se <- cv.rrfit$lambda.1se
+rr.best <- glmnet(Xfull, Y, alpha = 1, lambda = lammin)
+rr.se <- glmnet(Xfull, Y, alpha = 1, lambda = lam1se)
+coef(rr.best)
+
+```
+```{r}
+library(DAAG)
+Lasso.lm <- lm(ViolentCrimesPerPop ~.-racePctHisp-agePct12t21-agePct16t24-medIncome-medFamInc-perCapInc-NumUnderPov-PctNotHSGrad-PctBSorMore-PctOccupManu-PctOccupMgmtProf-FemalePctDiv-TotalPctDiv-PersPerFam-PctFam2Par-PctTeen2Par-PctWorkMomYoungKids-NumIlleg-PctImmigRecent-PctImmigRec10-PctRecentImmig-PctRecImmig5-PctSpeakEnglOnly-PctNotSpeakEnglWell-PctLargHouseFam-PctLargHouseOccup-PersPerOccupHous-PersPerOwnOccHous-PersPerRentOccHous-MedNumBR-PctHousOwnOcc-MedYrHousBuilt-PctHousNoPhone-PctWOFullPlumb-OwnOccLowQuart-OwnOccMedVal-OwnOccHiQuart-RentMedian-RentHighQ-MedOwnCostPctInc-PctForeignBorn-PctBornSameState-PctSameHouse85-PctSameState85-LandArea-PopDens, data = train)
+vifless5<-vif(Lasso.lm)
+names(vifless5) <- names(vif(Lasso.lm))
+vifless5 <- vifless5[vifless5 < 5]
+vifless5
+```
+
+
+
+```{r}
+Lasso.lm1 <- lm(ViolentCrimesPerPop ~ racePctAsian+ pctUrban+pctWFarmSelf+pctWRetire+blackPerCap+indianPerCap+AsianPerCap+HispPerCap+PctEmplManu+PctEmplProfServ+PctWorkMom+ NumImmig+PctHousOccup+PctVacantBoarded+PctVacMore6Mos+ MedRentPctHousInc+MedOwnCostPctInc+NumInShelters+NumStreet+PctSameCity85+PctUsePubTrans+ LemasPctOfficDrugUn, data = train)
+summary(Lasso.lm1)
+plot(Lasso.lm1)
+
+```
+```{r}
+library(dplyr)
+forla =
+  train%>%
+  select(ViolentCrimesPerPop , racePctAsian ,pctUrban , 
+    pctWFarmSelf , pctWRetire , blackPerCap , indianPerCap , 
+    AsianPerCap , HispPerCap , PctEmplManu , PctEmplProfServ , 
+    PctWorkMom , NumImmig , PctHousOccup , PctVacantBoarded , 
+    PctVacMore6Mos , MedRentPctHousInc , MedOwnCostPctInc , NumInShelters , 
+    NumStreet , PctSameCity85 , PctUsePubTrans , LemasPctOfficDrugUn) %>%
+  print()
+head(forla)
+library(Hmisc)
+hist.data.frame(forla)
+```
+```{r}
+Lasso.lm1t <- lm(sqrt(ViolentCrimesPerPop) ~ sqrt(racePctAsian)+ (sqrt(max(pctUrban+1) - pctUrban))+sqrt(pctWFarmSelf)+pctWRetire+sqrt(blackPerCap)+sqrt(indianPerCap)+sqrt(AsianPerCap)+sqrt(HispPerCap)+PctEmplManu+PctEmplProfServ+PctWorkMom+ sqrt(NumImmig)+(sqrt(max(PctHousOccup+1) - PctHousOccup))+sqrt(PctVacantBoarded)+PctVacMore6Mos+ MedRentPctHousInc+MedOwnCostPctInc+sqrt(NumInShelters)+sqrt(NumStreet)+(sqrt(max(PctSameCity85+1) - PctSameCity85))+sqrt(PctUsePubTrans)+ sqrt(LemasPctOfficDrugUn), data = forla)
+summary(Lasso.lm1t)
+plot(Lasso.lm1t)
+
+```
+
+
+
+
+```{r}
+coef(rr.se)
+```
+
+
+```{r}
+library(DAAG)
+Lasso.1se <- lm(ViolentCrimesPerPop ~racepctblack+racePctWhite+agePct12t29+pctUrban+MalePctDivorce+PctKids2Par+PctWorkMom+PctIlleg+PctPersDenseHous+HousVacant+PctHousOccup+PctVacantBoarded+NumStreet, data = train)
+vif(Lasso.1se)
+vifless55<-vif(Lasso.1se)
+names(vifless55) <- names(vif(Lasso.1se))
+vifless55 <- vifless55[vifless55 < 5]
+vifless55
+```
+
+
+```{r}
+Lasso.1se1 <- lm(ViolentCrimesPerPop ~ agePct12t29+pctUrban+MalePctDivorce+PctWorkMom+PctPersDenseHous+HousVacant+PctHousOccup+PctVacantBoarded+NumStreet, data = train)
+summary(Lasso.1se1)
+plot(Lasso.1se1)
+
+```
+
+
+
+
+
+```{r}
+library(dplyr)
+forla1 =
+  train%>%
+  select( agePct12t29,pctUrban,MalePctDivorce,PctWorkMom,PctPersDenseHous,HousVacant,PctHousOccup,PctVacantBoarded,NumStreet,ViolentCrimesPerPop ) %>%
+  print()
+head(forla1)
+library(Hmisc)
+hist.data.frame(forla1)
+```
+
+```{r}
+Lasso.1se1t <- lm(sqrt(ViolentCrimesPerPop) ~ agePct12t29+(sqrt(max(pctUrban+1) - pctUrban))+MalePctDivorce+PctWorkMom+sqrt(PctPersDenseHous)+sqrt(HousVacant)+(sqrt(max(PctHousOccup+1) - PctHousOccup))+sqrt(PctVacantBoarded)+sqrt(NumStreet), data = forla1)
+summary(Lasso.1se1t)
+plot(Lasso.1se1t)
+```
+
+
+
+```{r}
+mean((Lasso.1se1t$residuals)^2)
+mean((Lasso.lm1t$residuals)^2)
+```
+
+```{r}
+prediction<- predict(Lasso.1se1t, test)
+
+```
+
+```{r}
+output <- cbind(test, prediction)
+
+```
+
+```{r}
+plot(prediction,test$ViolentCrimesPerPop)
+abline(coef = c(0,1))
+
+```
+
+```{r}
+pd<- predict(Lasso.1se1t, comwithrace)
+op <- cbind(communities, pd)
+```
+
+```{r}
+write.csv(op,"C:/Users/ricoc/desktop/GR5241_FinalProject-main/Data\\op.csv", row.names = T)
+```
+
+```{r}
+mean((pd-comwithrace$ViolentCrimesPerPop)^2)
+mean((prediction-test$ViolentCrimesPerPop)^2)
+```
+
+```{r}
+```
+
+```{r}
+
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
